@@ -1,5 +1,5 @@
 // Modello del ricevimento del pomodoro. Passo di un minuto.
-// Flusso: arrivo al cancello, carotaggio (stazioni), esito di laboratorio,
+// Flusso: arrivo al cancello, carotaggio (postazioni), esito di laboratorio,
 // scarico (baie), vasche, linea di lavorazione.
 // Tutte le quantità sono in tonnellate e tutti i tempi in minuti dal primo minuto del giorno.
 
@@ -7,9 +7,9 @@ export const DEFAULTS = {
   trucks: 260, // camion nel giorno (REALE, picco 2025)
   tonsPerTruck: 24, // t per camion (STIMATO, 22-27)
   stations: 4, // postazioni di carotaggio (STIMATO, 3-5)
-  sampleMin: 20, // minuti di carotaggio e cernita (STIMATO, 15-25: da chiedere a Mutti)
+  sampleMin: 20, // minuti di carotaggio e cernita (DA CHIEDERE a Mutti)
   labMin: 30, // minuti di laboratorio dopo il campione (STIMATO)
-  rejectRate: 0.02, // quota di carichi rifiutati (STIMATO, 1-3%: da chiedere a Mutti)
+  rejectRate: 0.02, // quota di carichi rifiutati (DA CHIEDERE a Mutti, ipotesi 1-3%)
   bays: 3, // baie di scarico (non pubblico)
   unloadMin: 16, // minuti per scarico in una baia (STIMATO, 3 baie = circa 11 camion/h)
   tanks: 5, // vasche (REALE, video)
@@ -29,7 +29,8 @@ export const SCENARIOS = {
   avvio: { label: 'Inizio campagna', trucks: 100, startLevel: 0, note: 'Circa 100 camion e vasche vuote: la linea a piena velocità resta spesso senza prodotto. Prova a ridurla.' },
 };
 
-const HORIZON = 2880; // due giorni: la coda deve svuotarsi
+export const HORIZON = 2880; // due giorni: la coda deve svuotarsi
+export const LINE = { RUNNING: 0, STARVED: 1, STOPPED: 2 };
 const SAMPLE_EVERY = 10; // minuti tra due punti delle serie storiche
 
 // Generatore pseudo-casuale con seme (mulberry32): stessi parametri, stesso risultato.
@@ -44,13 +45,18 @@ function rng(seed) {
   };
 }
 
+// Solo nello scenario "Linea ferma": linea spenta dalle 10 alle 14.
+export function lineStopped(scenario, t) {
+  return scenario === 'linea' && t >= 600 && t < 840;
+}
+
 // Istanti di arrivo dei camion secondo lo scenario e la modalità.
 export function arrivals(p) {
   const r = rng(p.seed);
   const n = p.trucks;
   const times = [];
   if (p.mode === 'piano') {
-    // Slot pianificati: distribuiti in modo regolare alla velocità delle baie,
+    // Slot pianificati: distribuiti in modo regolare nelle 24 ore,
     // a partire dall’inizio disponibile dello scenario.
     const start = p.scenario === 'pioggia' ? 360 : 0;
     for (let i = 0; i < n; i++) times.push(start + Math.floor((i * 1440) / n));
@@ -74,92 +80,119 @@ export function simulate(input) {
   const rand = rng(p.seed + 1);
   const load = p.tonsPerTruck;
 
-  const trucks = times.map((arr, id) => ({ id, arr, rejected: false, deposit: null }));
+  // Ogni camion registra dove e quando passa: è il "diario" che la scena 3D rilegge.
+  const trucks = times.map((arr, id) => ({
+    id,
+    arr,
+    load,
+    station: -1,
+    sampleStart: null,
+    resultAt: null,
+    rejected: false,
+    bay: -1,
+    unloadStart: null,
+    tank: -1,
+    deposit: null,
+  }));
   const gateQ = [];
   const unloadQ = [];
   const stationFree = Array(p.stations).fill(0);
-  const pendingLab = []; // { truck, at, accepted }
+  const pendingLab = [];
   const bays = Array.from({ length: p.bays }, () => ({ truck: null, until: -1 }));
   const startLevel = p.startLevel ?? SCENARIOS[p.scenario].startLevel;
   const tanks = Array(p.tanks).fill(startLevel * p.tankCap);
+  const reserved = Array(p.tanks).fill(0); // carichi già assegnati a una vasca ma non ancora versati
   const initialTons = tanks.reduce((a, b) => a + b, 0);
   const perMin = p.lineRate / 60;
-  // Solo nello scenario "Linea ferma": linea spenta dalle 10 alle 14.
-  const lineStopped = (t) => p.scenario === 'linea' && t >= 600 && t < 840;
+
+  // Stato minuto per minuto, per la riproduzione e la linea del tempo.
+  const levels = new Float32Array(HORIZON * p.tanks);
+  const processedAt = new Float32Array(HORIZON);
+  const lineState = new Uint8Array(HORIZON);
 
   let next = 0;
   let processed = 0;
-  const starvedAt = []; // minuti con la linea accesa e le vasche quasi vuote
   let lastDeposit = 0;
   let deliveredTons = 0;
   let accepted = 0;
   let rejected = 0;
-  let gateWaits = [];
   let gateMax = 0;
+  let gateMaxAt = 0;
   let tankPeak = 0;
+  let minutes = HORIZON;
   const series = [];
 
   for (let t = 0; t < HORIZON; t++) {
     // 1. Arrivi al cancello.
     while (next < trucks.length && trucks[next].arr === t) gateQ.push(trucks[next++]);
 
-    // 2. Carotaggio: ogni postazione libera prende il camion successivo.
+    // 2. Carotaggio: ogni postazione libera prende il primo camion della coda.
     for (let s = 0; s < stationFree.length; s++) {
       if (stationFree[s] <= t && gateQ.length) {
         const truck = gateQ.shift();
-        gateWaits.push(t - truck.arr);
+        truck.station = s;
+        truck.sampleStart = t;
+        truck.resultAt = t + p.sampleMin + p.labMin;
+        truck.rejected = rand() < p.rejectRate;
         stationFree[s] = t + p.sampleMin;
-        const reject = rand() < p.rejectRate;
-        pendingLab.push({ truck, at: t + p.sampleMin + p.labMin, accepted: !reject });
+        pendingLab.push(truck);
       }
     }
 
     // 3. Esito di laboratorio: accettato va in coda allo scarico, rifiutato esce.
-    for (let i = pendingLab.length - 1; i >= 0; i--) {
-      const item = pendingLab[i];
-      if (item.at !== t) continue;
+    for (let i = 0; i < pendingLab.length; ) {
+      const truck = pendingLab[i];
+      if (truck.resultAt !== t) {
+        i++;
+        continue;
+      }
       pendingLab.splice(i, 1);
-      if (item.accepted) {
-        accepted++;
-        unloadQ.push(item.truck);
-      } else {
+      if (truck.rejected) {
         rejected++;
-        item.truck.rejected = true;
+      } else {
+        accepted++;
+        unloadQ.push(truck);
       }
     }
 
-    // 4. Scarico: si consegna nella vasca con più spazio libero.
-    const freeTank = () => {
+    // 4. Scarico: il camion entra in una baia solo se una vasca ha spazio per tutto il carico.
+    for (let b = 0; b < bays.length; b++) {
+      const bay = bays[b];
+      if (bay.truck && bay.until <= t) {
+        const truck = bay.truck;
+        tanks[truck.tank] += truck.load;
+        reserved[truck.tank] -= truck.load;
+        truck.deposit = t;
+        deliveredTons += truck.load;
+        lastDeposit = t;
+        bay.truck = null;
+      }
+    }
+    for (let b = 0; b < bays.length; b++) {
+      const bay = bays[b];
+      if (bay.truck || !unloadQ.length) continue;
       let best = -1;
       for (let k = 0; k < tanks.length; k++) {
-        const free = p.tankCap - tanks[k];
-        if (free >= load && (best < 0 || free > p.tankCap - tanks[best])) best = k;
+        const free = p.tankCap - tanks[k] - reserved[k];
+        if (free >= load - 1e-9 && (best < 0 || free > p.tankCap - tanks[best] - reserved[best])) best = k;
       }
-      return best;
-    };
-    for (const bay of bays) {
-      if (bay.truck && bay.until <= t) {
-        const k = freeTank();
-        if (k >= 0) {
-          tanks[k] += load;
-          bay.truck.deposit = t;
-          deliveredTons += load;
-          lastDeposit = t;
-          bay.truck = null;
-        } // altrimenti la baia resta occupata finché una vasca si libera
-      }
-      if (!bay.truck && unloadQ.length && bay.until <= t) {
-        bay.truck = unloadQ.shift();
-        bay.until = t + p.unloadMin;
-      }
+      if (best < 0) break; // vasche piene: i camion aspettano in coda
+      const truck = unloadQ.shift();
+      truck.bay = b;
+      truck.tank = best;
+      truck.unloadStart = t;
+      reserved[best] += truck.load;
+      bay.truck = truck;
+      bay.until = t + p.unloadMin;
     }
 
     // 5. Linea: prende dalla vasca più piena. Se il prodotto manca, la linea gira a vuoto.
-    const running = !lineStopped(t);
-    if (running) {
-      let want = perMin;
+    if (lineStopped(p.scenario, t)) {
+      lineState[t] = LINE.STOPPED;
+    } else {
       const total = tanks.reduce((a, b) => a + b, 0);
-      if (total < perMin) starvedAt.push(t);
+      lineState[t] = total < perMin - 1e-9 ? LINE.STARVED : LINE.RUNNING;
+      let want = perMin;
       while (want > 1e-9) {
         let top = -1;
         for (let k = 0; k < tanks.length; k++) if (tanks[k] > 1e-9 && (top < 0 || tanks[k] > tanks[top])) top = k;
@@ -170,14 +203,20 @@ export function simulate(input) {
         want -= take;
       }
     }
+
+    for (let k = 0; k < tanks.length; k++) levels[t * p.tanks + k] = tanks[k];
+    processedAt[t] = processed;
     tankPeak = Math.max(tankPeak, Math.max(...tanks) / p.tankCap);
-    gateMax = Math.max(gateMax, gateQ.length);
+    if (gateQ.length > gateMax) {
+      gateMax = gateQ.length;
+      gateMaxAt = t;
+    }
 
     if (t % SAMPLE_EVERY === 0) {
       series.push({
         t,
         queue: gateQ.length,
-        waiting: unloadQ.length + bays.filter((b) => b.truck && b.until <= t).length,
+        waiting: unloadQ.length,
         tanks: tanks.map((x) => x / p.tankCap),
         processed,
       });
@@ -186,30 +225,38 @@ export function simulate(input) {
     // Fine: tutti i camion hanno scaricato o sono usciti, e la lavorazione ha svuotato le vasche.
     const done = next >= trucks.length && gateQ.length === 0 && unloadQ.length === 0 && pendingLab.length === 0 &&
       bays.every((b) => !b.truck) && tanks.every((x) => x < 1e-9);
-    if (done) break;
+    if (done) {
+      minutes = t + 1;
+      break;
+    }
   }
 
-  // Contano solo i minuti fino all'ultimo scarico: dopo, la linea si svuota e si ferma.
-  const starvedMin = starvedAt.filter((t) => t <= lastDeposit).length;
-  const avg = gateWaits.length ? gateWaits.reduce((a, b) => a + b, 0) / gateWaits.length : 0;
-  const waitMax = gateWaits.length ? Math.max(...gateWaits) : 0;
+  // Le ore senza prodotto contano fino all'ultimo scarico: dopo, la linea si svuota e si ferma.
+  let starvedMin = 0;
+  for (let t = 0; t <= Math.min(lastDeposit, minutes - 1); t++) if (lineState[t] === LINE.STARVED) starvedMin++;
+
+  const gateWaits = trucks.filter((x) => x.sampleStart !== null).map((x) => x.sampleStart - x.arr);
   const unloaded = trucks.filter((x) => x.deposit !== null).map((x) => x.deposit - x.arr);
-  const dockAvg = unloaded.length ? unloaded.reduce((a, b) => a + b, 0) / unloaded.length : 0;
-  const dockMax = unloaded.length ? Math.max(...unloaded) : 0;
+  const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+  const max = (xs) => (xs.length ? Math.max(...xs) : 0);
   const inTanks = tanks.reduce((a, b) => a + b, 0);
+
   return {
     params: p,
+    trucks,
     series,
+    minutes: { count: minutes, tanks: p.tanks, levels, processed: processedAt, line: lineState },
     kpi: {
       trucks: trucks.length,
       accepted,
       rejected,
       rejectedShare: trucks.length ? rejected / trucks.length : 0,
-      gateWaitAvg: avg,
-      gateWaitMax: waitMax,
+      gateWaitAvg: mean(gateWaits),
+      gateWaitMax: max(gateWaits),
       gateQueueMax: gateMax,
-      dockWaitAvg: dockAvg,
-      dockWaitMax: dockMax,
+      gateQueueMaxAt: gateMaxAt,
+      dockWaitAvg: mean(unloaded),
+      dockWaitMax: max(unloaded),
       starvedHours: starvedMin / 60,
       tankPeak,
       processedTons: processed,
@@ -218,6 +265,5 @@ export function simulate(input) {
       inTanksTons: inTanks,
       endHour: lastDeposit / 60,
     },
-    trucks,
   };
 }
