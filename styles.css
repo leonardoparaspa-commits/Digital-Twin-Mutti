@@ -211,7 +211,7 @@ h1 { font-size: 24px; line-height: 1.15; font-weight: 600; margin: 0 0 8px; lett
 
 .now { border-top: 1px solid var(--border); padding: 14px 0 6px; }
 .clock { display: flex; align-items: baseline; gap: 12px; }
-.clock-time { margin: 0; font-size: 32px; line-height: 1; }
+.clock-time { margin: 0; font-size: 24px; line-height: 1; }
 .clock-day { margin: 0; color: var(--muted); }
 .line-state { margin: 8px 0 6px; font-size: 14px; }
 .line-state::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--text); margin-right: 8px; vertical-align: 1px; }
@@ -253,6 +253,7 @@ table { border-collapse: collapse; width: 100%; }
 #compare thead th.on { color: var(--text); }
 #compare thead th.on span { padding-bottom: 5px; border-bottom: 1px solid var(--accent); }
 #compare td { padding-left: 12px; white-space: nowrap; font-size: 15px; }
+#compare tbody tr:first-child td { font-size: 32px; line-height: 1.1; padding-top: 12px; padding-bottom: 12px; }
 #compare td.on { color: var(--text); }
 #compare td:not(.on) { color: var(--muted); }
 #compare.swap { animation: swap 0.4s var(--ease); }

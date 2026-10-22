@@ -97,10 +97,15 @@ function recompute() {
   $('#title').textContent = SCENARIOS[state.scenario].label;
   press('[data-scenario]', 'scenario', state.scenario);
   press('[data-mode]', 'mode', state.mode);
-  const starved = (k) => (k.starvedHours >= 0.1 ? `${fmtDec(k.starvedHours)} h` : 'none');
-  $('#finding').textContent = free.gateQueueMax === plan.gateQueueMax && free.starvedHours === plan.starvedHours
-    ? 'In this scenario planning the arrivals changes nothing.'
-    : `Without planning, up to ${free.gateQueueMax} trucks queue at the gate. With planned slots, ${plan.gateQueueMax}.`;
+  const starved = (k) => `${fmtDec(k.starvedHours)} h`;
+  // La frase dice cosa significa il confronto; le cifre stanno solo nella tabella.
+  const noQueue = plan.gateQueueMax <= free.gateQueueMax * 0.2 && free.gateQueueMax > 5;
+  const dry = plan.starvedHours >= 1;
+  $('#finding').textContent = !noQueue
+    ? 'In this scenario planning the arrivals changes little.'
+    : dry
+      ? 'Planned slots remove the queue at the gate, but the line still runs out of product: the tanks are empty and slots cannot fix that.'
+      : 'Planned slots remove the queue at the gate and keep the line fed.';
   $('#mode-note').textContent = MODE_NOTES[state.mode];
 
   const rows = [
