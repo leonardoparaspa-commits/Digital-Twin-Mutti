@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#171719">
-<title>Ricevimento del pomodoro, digital twin</title>
-<meta name="description" content="Digital twin 3D del ricevimento del pomodoro in campagna: camion, carotaggio, baie, vasche e linea, minuto per minuto. Progetto universitario indipendente, non affiliato a Mutti.">
+<title>Tomato receiving, digital twin</title>
+<meta name="description" content="3D digital twin of tomato receiving during the harvest: trucks, core sampling, unloading bays, tanks and the processing line, minute by minute. Independent university project, not affiliated with Mutti.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,96 +19,96 @@
 
 <header class="top">
   <span class="mark" aria-hidden="true"></span>
-  <p class="brand">Ricevimento del pomodoro <span>digital twin</span></p>
-  <p class="scope">Progetto universitario indipendente, non affiliato a Mutti</p>
-  <button type="button" class="ghost" id="info-open">Fonti e limiti</button>
+  <p class="brand">Tomato receiving <span>digital twin</span></p>
+  <p class="scope">Independent university project, not affiliated with Mutti</p>
+  <button type="button" class="ghost" id="info-open">Sources and limits</button>
 </header>
 
 <main class="app">
 
-  <aside class="panel panel-left" aria-label="Scenario e parametri">
-    <h1 id="title">Giorno di picco</h1>
+  <aside class="panel panel-left" aria-label="Scenario and parameters">
+    <h1 id="title">Peak day</h1>
     <p class="finding" id="finding"></p>
 
     <div class="group">
       <p class="group-name">Scenario</p>
       <div class="tabs" role="group" aria-label="Scenario">
-        <button type="button" data-scenario="picco" aria-pressed="true">Picco</button>
-        <button type="button" data-scenario="pioggia" aria-pressed="false">Pioggia</button>
-        <button type="button" data-scenario="linea" aria-pressed="false">Linea ferma</button>
-        <button type="button" data-scenario="avvio" aria-pressed="false">Avvio</button>
+        <button type="button" data-scenario="picco" aria-pressed="true">Peak</button>
+        <button type="button" data-scenario="pioggia" aria-pressed="false">Rain</button>
+        <button type="button" data-scenario="linea" aria-pressed="false">Line stop</button>
+        <button type="button" data-scenario="avvio" aria-pressed="false">Season start</button>
       </div>
       <p class="note" id="scenario-note"></p>
     </div>
 
     <div class="group">
-      <p class="group-name">Arrivi dei camion</p>
-      <div class="tabs" role="group" aria-label="Arrivi dei camion">
-        <button type="button" data-mode="libero" aria-pressed="true">Come oggi</button>
-        <button type="button" data-mode="piano" aria-pressed="false">Slot pianificati</button>
+      <p class="group-name">Truck arrivals</p>
+      <div class="tabs" role="group" aria-label="Truck arrivals">
+        <button type="button" data-mode="libero" aria-pressed="true">As today</button>
+        <button type="button" data-mode="piano" aria-pressed="false">Planned slots</button>
       </div>
     </div>
 
     <div class="group params" id="params">
-      <p class="group-name">Parametri</p>
+      <p class="group-name">Parameters</p>
     </div>
-    <p class="disclaimer">Progetto universitario indipendente, non affiliato a Mutti.</p>
+    <p class="disclaimer">Independent university project, not affiliated with Mutti.</p>
   </aside>
 
-  <section class="stage" aria-label="Vista 3D dell’impianto">
-    <div class="canvas" id="canvas" role="img" aria-label="Vista 3D: piazzale con i camion in coda, cancello, postazioni di carotaggio, baie di scarico, cinque vasche e linea di lavorazione."></div>
-    <div class="views" role="group" aria-label="Vista della camera">
-      <button type="button" data-view="panoramica" aria-pressed="true">Panoramica</button>
-      <button type="button" data-view="cancello" aria-pressed="false">Cancello</button>
-      <button type="button" data-view="scarico" aria-pressed="false">Scarico e vasche</button>
-      <button type="button" data-view="segui" aria-pressed="false" disabled>Segui camion</button>
+  <section class="stage" aria-label="3D view of the plant">
+    <div class="canvas" id="canvas" role="img" aria-label="3D view: yard with queuing trucks, gate, core sampling stations, unloading bays, five tanks and the processing line."></div>
+    <div class="views" role="group" aria-label="Camera view">
+      <button type="button" data-view="panoramica" aria-pressed="true">Overview</button>
+      <button type="button" data-view="cancello" aria-pressed="false">Gate</button>
+      <button type="button" data-view="scarico" aria-pressed="false">Unloading and tanks</button>
+      <button type="button" data-view="segui" aria-pressed="false" disabled>Follow truck</button>
     </div>
-    <p class="hint" id="hint">Trascina per ruotare, rotella o due dita per lo zoom. Tocca un camion per seguirlo.</p>
+    <p class="hint" id="hint">Drag to rotate, scroll or pinch to zoom. Tap a truck to follow it.</p>
     <div class="fallback" id="fallback" hidden>
-      <p>Questo browser non mostra la grafica 3D (WebGL non disponibile). I dati a destra e la linea del tempo funzionano lo stesso.</p>
+      <p>This browser cannot show the 3D view (WebGL is not available). The live data and the timeline still work.</p>
     </div>
   </section>
 
-  <aside class="panel panel-right" aria-label="Dati dal vivo">
+  <aside class="panel panel-right" aria-label="Live data">
     <div class="clock">
       <p class="clock-time num" id="clock">00:00</p>
-      <p class="clock-day" id="clock-day">Giorno 1</p>
-      <p class="line-state" id="line-state">Linea in marcia</p>
+      <p class="clock-day" id="clock-day">Day 1</p>
+      <p class="line-state" id="line-state">Line running</p>
     </div>
 
     <dl class="telemetry" id="telemetry"></dl>
 
-    <div class="tanks" id="tanks" aria-label="Livello delle vasche"></div>
+    <div class="tanks" id="tanks" aria-label="Tank levels"></div>
 
     <div class="truck" id="truck">
-      <p class="empty">Tocca un camion nella scena per vedere il suo percorso.</p>
+      <p class="empty">Tap a truck in the scene to see its journey.</p>
     </div>
 
     <div class="results">
-      <p class="group-name">Risultato della giornata</p>
+      <p class="group-name">Day results</p>
       <table id="compare"></table>
     </div>
   </aside>
 
-  <section class="timeline" aria-label="Linea del tempo">
+  <section class="timeline" aria-label="Timeline">
     <div class="transport">
-      <button type="button" class="play" id="play" aria-label="Avvia">
+      <button type="button" class="play" id="play" aria-label="Play">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-icon" d="M4 2.5v11l9-5.5z"/></svg>
       </button>
-      <div class="tabs speeds" role="group" aria-label="Velocità">
+      <div class="tabs speeds" role="group" aria-label="Speed">
         <button type="button" data-speed="1" aria-pressed="false">1 min/s</button>
         <button type="button" data-speed="5" aria-pressed="false">5</button>
         <button type="button" data-speed="15" aria-pressed="true">15</button>
         <button type="button" data-speed="40" aria-pressed="false">40</button>
       </div>
-      <button type="button" class="ghost" id="to-peak">Vai al picco della coda</button>
+      <button type="button" class="ghost" id="to-peak">Jump to queue peak</button>
     </div>
     <div class="strip">
       <svg id="strip" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <input type="range" id="scrub" min="0" max="1440" step="1" value="0" aria-label="Minuto della simulazione">
+      <input type="range" id="scrub" min="0" max="1440" step="1" value="0" aria-label="Simulation minute">
       <div class="axis" id="axis" aria-hidden="true"></div>
     </div>
-    <p class="legend"><span class="sw sw-gate"></span>Camion al cancello <span class="sw sw-dock"></span>In attesa di scarico <span class="sw sw-starved"></span>Linea senza prodotto <span class="sw sw-stop"></span>Linea ferma</p>
+    <p class="legend"><span class="sw sw-gate"></span>Trucks at the gate <span class="sw sw-dock"></span>Waiting to unload <span class="sw sw-starved"></span>Line without product <span class="sw sw-stop"></span>Line stopped</p>
   </section>
 
 </main>
@@ -116,30 +116,30 @@
 <dialog id="info" aria-labelledby="info-title">
   <div class="info">
     <div class="info-head">
-      <h2 id="info-title">Fonti e limiti</h2>
-      <button type="button" class="ghost" id="info-close">Chiudi</button>
+      <h2 id="info-title">Sources and limits</h2>
+      <button type="button" class="ghost" id="info-close">Close</button>
     </div>
-    <p><strong>Progetto universitario indipendente, non affiliato a Mutti.</strong> Corso Smart Industry, University of Twente, sfida “From Workflow to Wisdom”. Il caso è lo stabilimento di Montechiarugolo, ricostruito solo da fonti pubbliche. Logo e marchio Mutti non sono usati.</p>
-    <p>Il modello avanza di un minuto alla volta. Ogni camion passa dal cancello al carotaggio, aspetta l’esito di laboratorio, poi scarica in una baia solo se una vasca ha spazio per tutto il carico. La linea prende dalla vasca più piena. La scena 3D rilegge il diario di ogni camion: non è collegata a dati reali dello stabilimento.</p>
-    <h3>Parametri</h3>
+    <p><strong>Independent university project, not affiliated with Mutti.</strong> Smart Industry course, University of Twente, challenge “From Workflow to Wisdom”. The case is the Montechiarugolo plant, rebuilt from public sources only. The Mutti logo and brand are not used.</p>
+    <p>The model moves one minute at a time. Each truck goes from the gate to core sampling, waits for the lab result, then unloads in a bay only when a tank has room for the whole load. The line draws from the fullest tank. The 3D scene replays each truck’s log: it is not connected to real plant data.</p>
+    <h3>Parameters</h3>
     <table class="info-table" id="info-params"></table>
-    <h3>Fonti</h3>
+    <h3>Sources</h3>
     <ul>
-      <li><a href="https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/" rel="noopener">Linkiesta, agosto 2025</a>: 260 camion e circa 6.000 t al giorno nei giorni di punta.</li>
-      <li><a href="https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/" rel="noopener">Terra e Vita, circa 2019</a>: otto camion all’ora in scarico a pieno regime.</li>
-      <li><a href="https://www.smau.it/FRONTEND/Casi%20Successo%20PDF/MUTTI_Premio%20Innovazione%20Smau%202022.pdf" rel="noopener">SMAU 2022, caso Mutti</a>: campione, cernita e analisi in laboratorio.</li>
-      <li><a href="https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf" rel="noopener">Mutti, comunicato 2022</a>: ricevimento aperto 24 ore su 24 in campagna.</li>
-      <li>Video pubblico della visita allo stabilimento, campagna 2025: cinque vasche da circa quattro camion e carotaggio su ogni camion.</li>
+      <li><a href="https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/" rel="noopener">Linkiesta, August 2025</a> (Italian): 260 trucks and about 6,000 t a day on peak days.</li>
+      <li><a href="https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/" rel="noopener">Terra e Vita, about 2019</a> (Italian): eight trucks an hour unloaded at full capacity.</li>
+      <li><a href="https://www.smau.it/FRONTEND/Casi%20Successo%20PDF/MUTTI_Premio%20Innovazione%20Smau%202022.pdf" rel="noopener">SMAU 2022, Mutti case</a> (Italian): sampling, sorting and lab analysis.</li>
+      <li><a href="https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf" rel="noopener">Mutti, 2022 press release</a>: receiving open 24 hours a day during the harvest.</li>
+      <li>Public video of a plant visit, 2025 harvest: five tanks of about four truckloads each, and core sampling on every truck.</li>
     </ul>
-    <h3>Limiti</h3>
+    <h3>Limits</h3>
     <ul>
-      <li>Mancano tre numeri interni: durata del carotaggio, attese al cancello e quota di carichi rifiutati. Il modello mostra meccanismi e ordini di grandezza, non previsioni.</li>
-      <li>I tempi sono fissi. Nella realtà cambiano da camion a camion.</li>
-      <li>Il profilo degli arrivi di oggi è un’ipotesi: 60% dei camion tra le 6 e le 14.</li>
-      <li>Il modello non segue la qualità dei carichi (Brix, pH, colore) né la miscelazione nelle vasche.</li>
-      <li>La pianta 3D è schematica: posizioni e distanze non sono quelle dello stabilimento.</li>
+      <li>Three internal numbers are missing: core sampling time, waits at the gate and the share of rejected loads. The model shows mechanisms and orders of magnitude, not forecasts.</li>
+      <li>Times are fixed. In reality they vary from truck to truck.</li>
+      <li>Today’s arrival profile is an assumption: 60% of trucks between 6:00 and 14:00.</li>
+      <li>The model does not track load quality (Brix, pH, colour) or blending in the tanks.</li>
+      <li>The 3D layout is schematic: positions and distances are not those of the plant.</li>
     </ul>
-    <p class="small">Codice con licenza MIT. Three.js con licenza MIT. Caratteri Public Sans e JetBrains Mono (SIL Open Font License).</p>
+    <p class="small">Code under the MIT licence. Three.js under the MIT licence. Public Sans and JetBrains Mono fonts (SIL Open Font License).</p>
   </div>
 </dialog>
 

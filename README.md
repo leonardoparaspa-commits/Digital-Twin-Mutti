@@ -1,100 +1,102 @@
-# Digital twin del ricevimento del pomodoro
+# Tomato receiving digital twin
 
-**Progetto universitario indipendente, non affiliato a Mutti.** Corso Smart Industry, University of Twente, sfida "From Workflow to Wisdom". Il logo e il marchio Mutti non sono usati.
+**Independent university project, not affiliated with Mutti.** Smart Industry course, University of Twente, challenge "From Workflow to Wisdom". The Mutti logo and brand are not used.
 
-È un digital twin 3D del ricevimento del pomodoro in uno stabilimento di trasformazione durante la campagna. Nella scena si vedono i camion arrivare, aspettare al cancello, passare al carotaggio, scaricare nelle baie e riempire le vasche, minuto per minuto, con i dati dal vivo accanto. Il caso di riferimento è lo stabilimento Mutti di Montechiarugolo (Parma), ricostruito solo da fonti pubbliche. Il modello segue ogni camion dal cancello al carotaggio, all'esito di laboratorio, allo scarico, alle cinque vasche e alla linea di lavorazione. Poi confronta gli arrivi di oggi, senza slot, con arrivi in slot pianificati.
+This is a 3D digital twin of tomato receiving at a processing plant during the harvest. In the scene you watch trucks arrive, queue at the gate, go through core sampling, unload in the bays and fill the tanks, minute by minute, with live data alongside. The reference case is the Mutti plant in Montechiarugolo (Parma, Italy), rebuilt from public sources only. The twin compares today's arrivals, with no slots, against arrivals in planned slots.
 
-Nel processo to-be del progetto il twin è il passaggio ③: riceve le previsioni di arrivo e propone slot dei camion e piano delle vasche.
+In the project's to-be process the twin is step ③: it takes the arrival forecast and proposes truck slots and a tank plan.
 
-## Come si usa
+## How to use it
 
-- **La scena**: trascina per ruotare, rotella o due dita per lo zoom. Tocca un camion per vedere il suo percorso e seguirlo con la camera. I pulsanti in alto portano alle viste del cancello e dello scarico.
-- **Il tempo**: play e pausa (anche con la barra spaziatrice), quattro velocità, e la linea del tempo da trascinare. La linea rossa è la coda al cancello, quella grigia l'attesa dello scarico; le fasce segnano le ore con la linea senza prodotto o ferma.
-- **Scenari e parametri**: a sinistra. Ogni cambio ricalcola i due giorni e la tabella "Come oggi contro slot".
+- **The scene**: drag to rotate, scroll or pinch to zoom. Tap a truck to see its journey and follow it with the camera. The buttons at the top switch to the gate view and the unloading view.
+- **Time**: play and pause (also with the space bar), four speeds, and a timeline you can drag. The red line is the gate queue and the grey line is the queue to unload; the shaded bands mark hours when the line has no product or is stopped.
+- **Scenarios and parameters**: on the left. Every change reruns both days and the "As today vs slots" table.
 
-- **Online**: con GitHub Pages attivo, la pagina è servita dalla radice del ramo `main`.
-- **In locale**: dalla cartella del progetto lancia `python3 -m http.server 8000` e apri `http://localhost:8000`. La pagina usa moduli JavaScript, quindi non funziona aprendo `index.html` con un doppio clic.
-- **Test**: `npm test`. Serve Node 18 o successivo, senza dipendenze da installare.
+Running it:
 
-## Il modello
+- **Online**: with GitHub Pages on, the page is served from the root of the `main` branch.
+- **Locally**: from the project folder run `python3 -m http.server 8000` and open `http://localhost:8000`. The page uses JavaScript modules, so it does not work by double-clicking `index.html`.
+- **Tests**: `npm test`. Needs Node 18 or later, with nothing to install.
 
-Il modello avanza di un minuto alla volta per due giorni, così la coda del primo giorno ha il tempo di svuotarsi. Il giorno parte con le vasche piene all'80%, perché l'impianto è già in marcia; all'inizio della campagna partono vuote. Lo stesso insieme di parametri dà sempre lo stesso risultato, perché i numeri casuali hanno un seme fisso.
+## The model
 
-1. **Arrivo**: il camion entra nella coda del cancello, in ordine di arrivo.
-2. **Carotaggio**: una postazione libera prende il primo camion della coda e resta occupata per i minuti del campione.
-3. **Laboratorio**: l'esito arriva dopo i minuti di laboratorio, senza tenere occupata la postazione. Con la probabilità indicata il carico è rifiutato e il camion esce dal modello, perché lo vende altrove.
-4. **Scarico**: il camion accettato aspetta una baia libera. Entra solo se una vasca ha spazio per tutto il carico: la vasca con più spazio libero viene prenotata e il carico arriva a fine scarico. Se le vasche sono piene, i camion aspettano in coda e le baie restano libere.
-5. **Vasche e linea**: la linea prende prodotto dalla vasca più piena alla velocità indicata. Se nelle vasche non c'è abbastanza prodotto, il minuto conta come linea senza prodotto.
+The model moves one minute at a time over two days, so the first day's queue has time to clear. The day starts with the tanks 80% full, because the plant is already running; at the start of the season they start empty. The same parameters always give the same result, because the random numbers use a fixed seed.
 
-### Scenari
+1. **Arrival**: the truck joins the gate queue in order of arrival.
+2. **Core sampling**: a free station takes the first truck in the queue and stays busy for the sampling minutes.
+3. **Lab**: the result comes after the lab minutes, without holding the station. With the given probability the load is rejected and the truck leaves the model, because it sells the load elsewhere.
+4. **Unloading**: an accepted truck waits for a free bay. It goes in only when a tank has room for the whole load: the tank with the most free space is booked and the load arrives when unloading ends. When the tanks are full, trucks wait in the queue and the bays stay free.
+5. **Tanks and line**: the line draws product from the fullest tank at the given rate. When the tanks do not hold enough product, that minute counts as line without product.
 
-| Scenario | Arrivi come oggi | Slot pianificati |
+### Scenarios
+
+| Scenario | Arrivals as today | Planned slots |
 |---|---|---|
-| Giorno di picco | il 60% dei camion arriva tra le 6 e le 14, il resto in tutta la giornata | camion distribuiti in modo regolare nelle 24 ore |
-| Pioggia e ondata | nessun arrivo per 6 ore, poi tutti i camion tra le 6 e le 18 | dalle 6 in poi, distribuiti in modo regolare |
-| Linea ferma | come il giorno di picco, con la linea ferma dalle 10 alle 14 | come il giorno di picco, con la stessa fermata |
-| Inizio campagna | 100 camion, stesso profilo del picco, vasche vuote | 100 camion distribuiti in modo regolare, vasche vuote |
+| Peak day | 60% of trucks arrive between 6:00 and 14:00, the rest across the day | trucks spread evenly over 24 hours |
+| Rain and surge | no arrivals for 6 hours, then all trucks between 6:00 and 18:00 | from 6:00 on, spread evenly |
+| Line stop | as the peak day, with the line stopped from 10:00 to 14:00 | as the peak day, with the same stop |
+| Season start | 100 trucks, same profile as the peak, empty tanks | 100 trucks spread evenly, empty tanks |
 
-Il profilo degli arrivi di oggi è un'ipotesi: va sostituito con gli orari reali di arrivo quando saranno disponibili.
+Today's arrival profile is an assumption: it should be replaced with real arrival times when they are available.
 
-### Indicatori
+### Indicators
 
-- **Attesa media al cancello**: minuti tra l'arrivo e l'inizio del carotaggio.
-- **Coda massima al cancello**: il numero più alto di camion in attesa del carotaggio.
-- **Dall'arrivo allo scarico**: minuti tra l'arrivo e il versamento nella vasca, per i carichi accettati.
-- **Linea senza prodotto**: ore in cui la linea è accesa ma le vasche non hanno prodotto, dall'inizio del giorno all'ultimo scarico.
-- **Carichi rifiutati** e **tonnellate lavorate** nelle due giornate.
+- **Average wait at the gate**: minutes from arrival to the start of core sampling.
+- **Longest gate queue**: the highest number of trucks waiting for core sampling.
+- **Arrival to unloaded**: minutes from arrival to the load reaching a tank, for accepted loads.
+- **Line without product**: hours when the line is on but the tanks have no product, from the start of the day to the last unload.
+- **Rejected loads** and **tonnes processed** over the two days.
 
-## Parametri
+## Parameters
 
-Le cifre vengono da fonti pubbliche o da nostri calcoli. **Reale** indica un numero pubblicato dalla fonte citata, **stima** un nostro calcolo, **da chiedere** un numero interno che solo Mutti può dare. Tutti i valori si cambiano dalla pagina.
+The figures come from public sources or our own calculations. **Real** marks a number published by the cited source, **estimate** our own calculation, **ask Mutti** an internal number only Mutti can give. Every value can be changed on the page.
 
-| Parametro | Valore iniziale | Tipo | Fonte o calcolo |
+| Parameter | Starting value | Type | Source or calculation |
 |---|---|---|---|
-| Camion nel giorno di picco | 260 | reale | [Linkiesta, agosto 2025](https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/) |
-| Tonnellate per camion | 24 (da 22 a 27) | stima | 6.000 t ÷ 260 camion ≈ 23 t; 100 t ÷ 4 camion = 25 t |
-| Postazioni di carotaggio | 4 (da 3 a 5) | stima | un arrivo ogni 5,5 minuti al picco e un ciclo ipotetico di 15-25 minuti |
-| Minuti per campione | 20 | da chiedere | nessun dato pubblico |
-| Minuti di laboratorio | 30 | stima | nessun dato pubblico |
-| Carichi rifiutati | 2% (da 1 a 3%) | da chiedere | nessun dato pubblico |
-| Baie di scarico | 3 | stima | numero non pubblico |
-| Minuti per scarico | 16 | stima | 3 baie da 16 minuti danno circa 11 camion all'ora, il ritmo dei 260 camion in 24 ore |
-| Vasche | 5 da 100 t | reale | video della visita: 4 camion per vasca |
-| Linea | 250 t/h | stima | 6.000 t ÷ 24 ore |
-| Vasche all'inizio del giorno | 80% (0% all'inizio campagna) | stima | impianto già in marcia dal giorno prima |
-| Ricevimento | 24 ore su 24 | reale | [comunicato Mutti 2022](https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf) |
+| Trucks on a peak day | 260 | real | [Linkiesta, August 2025](https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/) (Italian) |
+| Tonnes per truck | 24 (22 to 27) | estimate | 6,000 t ÷ 260 trucks ≈ 23 t; 100 t ÷ 4 trucks = 25 t |
+| Core sampling stations | 4 (3 to 5) | estimate | one arrival every 5.5 minutes at peak and an assumed 15 to 25 minute cycle |
+| Minutes per sample | 20 | ask Mutti | no public data |
+| Lab minutes | 30 | estimate | no public data |
+| Rejected loads | 2% (1 to 3%) | ask Mutti | no public data |
+| Unloading bays | 3 | estimate | not public |
+| Minutes per unload | 16 | estimate | 3 bays at 16 minutes give about 11 trucks an hour, the pace of 260 trucks in 24 hours |
+| Tanks | 5 of 100 t | real | plant visit video: 4 truckloads per tank |
+| Line | 250 t/h | estimate | 6,000 t ÷ 24 hours |
+| Tanks at start of day | 80% (0% at season start) | estimate | plant already running from the day before |
+| Receiving | 24 hours a day | real | [Mutti press release 2022](https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf) |
 
-Un dato storico di [Terra e Vita](https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/) parla di 8 camion all'ora in scarico a pieno regime. Con 8 camion all'ora non si scaricano 260 camion in un giorno, quindi o il dato è vecchio, o vale per una sola baia, o al picco lo scarico è più veloce. È una delle domande per l'intervista.
+A historical figure from [Terra e Vita](https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/) (Italian) gives 8 trucks an hour unloaded at full capacity. At 8 trucks an hour you cannot unload 260 trucks in a day, so either the figure is old, or it applies to one bay, or unloading is faster at peak. It is one of the interview questions.
 
-## Limiti
+## Limits
 
-- Mancano tre numeri interni: durata del carotaggio, attese al cancello e quota di carichi rifiutati. Finché non arrivano, il modello mostra meccanismi e ordini di grandezza, non previsioni per lo stabilimento.
-- I tempi di carotaggio, laboratorio e scarico sono fissi. Nella realtà variano da camion a camion.
-- Il modello non segue la qualità dei carichi (Brix, pH, colore) né la miscelazione nelle vasche.
-- La linea lavora a velocità costante, senza avvii lenti o cambi di formato.
-- Le fonti sono state lette da estratti di ricerca e vanno aperte e verificate prima della consegna.
+- Three internal numbers are missing: core sampling time, waits at the gate and the share of rejected loads. Until we have them, the model shows mechanisms and orders of magnitude, not forecasts for the plant.
+- Sampling, lab and unloading times are fixed. In reality they vary from truck to truck.
+- The model does not track load quality (Brix, pH, colour) or blending in the tanks.
+- The line runs at a constant rate, with no slow starts or format changes.
+- The sources were read from search extracts and should be opened and checked before submission.
 
-## La scena 3D
+## The 3D scene
 
-Il modello scrive per ogni camion un diario: arrivo, postazione e inizio del carotaggio, esito, baia, vasca, inizio e fine dello scarico. Salva anche, minuto per minuto, il livello di ogni vasca, le tonnellate lavorate e lo stato della linea. La scena rilegge questi dati: in ogni istante calcola dove deve stare ogni camion e lo porta lì con un movimento morbido. Non è collegata a dati reali dello stabilimento: è un gemello del modello, pronto a ricevere orari di arrivo veri quando ci saranno.
+The model writes a log for every truck: arrival, station and start of sampling, lab result, bay, tank, and start and end of unloading. It also stores, minute by minute, the level of each tank, the tonnes processed and the state of the line. The scene replays this data: at every moment it works out where each truck should be and moves it there smoothly. It is not connected to real plant data. It is a twin of the model, ready to take real arrival times when they exist.
 
-La pianta è schematica. Le aree (piazzale, cancello, carotaggio, attesa dell'esito, attesa dello scarico, baie, vasche, linea) seguono l'ordine del flusso, non le posizioni reali.
+The layout is schematic. The areas (yard, gate, core sampling, lab result wait, unloading queue, bays, tanks, line) follow the order of the flow, not the real positions.
 
-## File
+## Files
 
-- `index.html`, `styles.css`: la pagina.
-- `sim.js`: il modello, senza dipendenze, usato sia dalla pagina sia dai test.
-- `layout.js`: la pianta e la posizione di ogni camion in un dato minuto, senza dipendenze.
-- `scene.js`: la scena 3D con Three.js.
-- `app.js`: collega scenari, parametri, linea del tempo e pannelli al modello e alla scena.
-- `vendor/three/`: Three.js 0.169.0 con la sua licenza, incluso nel sito per non dipendere da una CDN.
-- `tests/`: controlli del modello (le tonnellate si conservano, ogni camion passa le fasi in ordine, postazioni e baie non sono mai sovraccariche, risultati ripetibili) e della scena (conteggi uguali alle code del modello, nessun posto occupato da due camion).
+- `index.html`, `styles.css`: the page.
+- `sim.js`: the model, with no dependencies, used by both the page and the tests.
+- `layout.js`: the plant layout and where each truck is at a given minute, with no dependencies.
+- `scene.js`: the 3D scene, built with Three.js.
+- `app.js`: connects scenarios, parameters, timeline and panels to the model and the scene.
+- `vendor/three/`: Three.js 0.169.0 with its licence, shipped with the site so it does not depend on a CDN.
+- `tests/`: checks on the model (tonnes are conserved, every truck goes through the steps in order, stations and bays are never overloaded, results repeat) and on the scene (counts match the model's queues, no spot holds two trucks).
 
-## Crediti
+## Credits
 
-- [Three.js](https://threejs.org) (licenza MIT).
-- Caratteri Public Sans e JetBrains Mono (SIL Open Font License), da Google Fonts.
+- [Three.js](https://threejs.org) (MIT licence).
+- Public Sans and JetBrains Mono fonts (SIL Open Font License), from Google Fonts.
 
-## Licenza
+## Licence
 
-Codice con licenza MIT, vedi `LICENSE`.
+Code under the MIT licence, see `LICENSE`.
