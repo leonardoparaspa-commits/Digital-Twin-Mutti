@@ -27,7 +27,7 @@ const COLORS = {
 // Viste della camera: posizione e punto guardato.
 // dir: da dove guarda la camera; span: larghezza in metri da tenere nel quadro.
 const VIEWS = {
-  panoramica: { dir: [-0.42, 0.58, 0.7], target: [34, 0, -14], span: 345 },
+  panoramica: { dir: [-0.42, 0.58, 0.7], target: [26, 0, -14], span: 325 },
   cancello: { dir: [-0.55, 0.45, 0.7], target: [-80, 0, -14], span: 150 },
   scarico: { dir: [-0.5, 0.5, 0.7], target: [150, 0, -16], span: 130 },
 };
@@ -472,7 +472,11 @@ export function createTwin(host, { onSelect, reducedMotion }) {
     // Le etichette troppo vicine al bordo del riquadro si nascondono invece di essere tagliate.
     if (parts) {
       const w = host.clientWidth;
+      // Da lontano restano solo le etichette principali: le piccole si sovrappongono.
+      const far = camera.position.distanceTo(controls.target) > 190;
+      const minor = new Set([parts.labels.lab, parts.labels.result, parts.labels.dock, ...parts.tankLabels]);
       for (const obj of [...Object.values(parts.labels), ...parts.tankLabels]) {
+        if (far && minor.has(obj)) { obj.visible = false; continue; }
         lp.copy(obj.position).project(camera);
         const px = ((lp.x + 1) / 2) * w;
         const half = obj.element.offsetWidth / 2 || 40;
