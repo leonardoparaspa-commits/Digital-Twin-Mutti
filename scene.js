@@ -27,7 +27,7 @@ const COLORS = {
 // Viste della camera: posizione e punto guardato.
 // dir: da dove guarda la camera; span: larghezza in metri da tenere nel quadro.
 const VIEWS = {
-  panoramica: { dir: [-0.42, 0.58, 0.7], target: [8, 0, -12], span: 390 },
+  panoramica: { dir: [-0.42, 0.58, 0.7], target: [34, 0, -14], span: 345 },
   cancello: { dir: [-0.55, 0.45, 0.7], target: [-80, 0, -14], span: 150 },
   scarico: { dir: [-0.5, 0.5, 0.7], target: [150, 0, -16], span: 130 },
 };
@@ -511,7 +511,7 @@ export function createTwin(host, { onSelect, reducedMotion }) {
   function fit(v) {
     if (v === VIEWS.panoramica && camera.aspect < 1) v = PORTRAIT;
     const half = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const d = v.vspan ? v.vspan / 2 / half : v.span / 2 / (half * Math.min(camera.aspect, 1.9)) * 0.92;
+    const d = v.vspan ? v.vspan / 2 / half : v.span / 2 / (half * Math.min(camera.aspect, 1.45)) * 0.92;
     const target = new THREE.Vector3(...v.target);
     return [new THREE.Vector3(...v.dir).normalize().multiplyScalar(d).add(target), target];
   }

@@ -20,40 +20,30 @@
 <header class="top">
   <span class="mark" aria-hidden="true"></span>
   <p class="brand">Tomato receiving <span>digital twin</span></p>
-  <p class="scope">Independent university project, not affiliated with Mutti</p>
-  <button type="button" class="ghost" id="info-open">Sources and limits</button>
+  <button type="button" class="ghost" id="info-open">About and sources</button>
 </header>
 
 <main class="app">
 
-  <aside class="panel panel-left" aria-label="Scenario and parameters">
-    <h1 id="title">Peak day</h1>
-    <p class="finding" id="finding"></p>
-
-    <div class="group">
-      <p class="group-name">Scenario</p>
-      <div class="tabs" role="group" aria-label="Scenario">
-        <button type="button" data-scenario="picco" aria-pressed="true">Peak</button>
-        <button type="button" data-scenario="pioggia" aria-pressed="false">Rain</button>
-        <button type="button" data-scenario="linea" aria-pressed="false">Line stop</button>
-        <button type="button" data-scenario="avvio" aria-pressed="false">Season start</button>
+  <section class="choose" aria-label="Scenario and arrivals">
+    <div class="pick">
+      <p class="group-name" id="scenario-label">Choose a scenario</p>
+      <div class="scenarios" role="group" aria-labelledby="scenario-label">
+        <button type="button" class="scenario" data-scenario="picco" aria-pressed="true"><span class="s-name">Peak day</span><span class="s-note">260 trucks, most arrive between 6:00 and 14:00</span></button>
+        <button type="button" class="scenario" data-scenario="pioggia" aria-pressed="false"><span class="s-name">Rain and surge</span><span class="s-note">The harvest stops for 6 hours, then every truck arrives at once</span></button>
+        <button type="button" class="scenario" data-scenario="linea" aria-pressed="false"><span class="s-name">Line stop</span><span class="s-note">The processing line is off from 10:00 to 14:00</span></button>
+        <button type="button" class="scenario" data-scenario="avvio" aria-pressed="false"><span class="s-name">Season start</span><span class="s-note">100 trucks and empty tanks: can the line stay fed?</span></button>
       </div>
-      <p class="note" id="scenario-note"></p>
     </div>
-
-    <div class="group">
-      <p class="group-name">Truck arrivals</p>
-      <div class="tabs" role="group" aria-label="Truck arrivals">
-        <button type="button" data-mode="libero" aria-pressed="true">As today</button>
+    <div class="pick pick-arrivals">
+      <p class="group-name" id="arrivals-label">How the trucks arrive</p>
+      <div class="tabs" role="group" aria-labelledby="arrivals-label">
+        <button type="button" data-mode="libero" aria-pressed="true">Free arrival</button>
         <button type="button" data-mode="piano" aria-pressed="false">Planned slots</button>
       </div>
+      <p class="note" id="mode-note"></p>
     </div>
-
-    <div class="group params" id="params">
-      <p class="group-name">Parameters</p>
-    </div>
-    <p class="disclaimer">Independent university project, not affiliated with Mutti.</p>
-  </aside>
+  </section>
 
   <section class="stage" aria-label="3D view of the plant">
     <div class="canvas" id="canvas" role="img" aria-label="3D view: yard with queuing trucks, gate, core sampling stations, unloading bays, five tanks and the processing line."></div>
@@ -69,25 +59,33 @@
     </div>
   </section>
 
-  <aside class="panel panel-right" aria-label="Live data">
-    <div class="clock">
-      <p class="clock-time num" id="clock">00:00</p>
-      <p class="clock-day" id="clock-day">Day 1</p>
-      <p class="line-state" id="line-state">Line running</p>
-    </div>
-
-    <dl class="telemetry" id="telemetry"></dl>
-
-    <div class="tanks" id="tanks" aria-label="Tank levels"></div>
-
-    <div class="truck" id="truck">
-      <p class="empty">Tap a truck in the scene to see its journey.</p>
-    </div>
+  <aside class="panel side" aria-label="Live data and results">
+    <h1 id="title">Peak day</h1>
+    <p class="finding" id="finding"></p>
 
     <div class="results">
-      <p class="group-name">Day results</p>
+      <p class="group-name">Free arrival or planned slots?</p>
+      <p class="note">Same trucks, same plant, same day. Only the arrival times change.</p>
       <table id="compare"></table>
+      <p class="note">Results of the simulation, not measured at the plant.</p>
     </div>
+
+    <div class="now">
+      <div class="clock">
+        <p class="clock-time num" id="clock">00:00</p>
+        <p class="clock-day" id="clock-day">Day 1</p>
+      </div>
+      <p class="line-state" id="line-state">Line running</p>
+      <dl class="telemetry" id="telemetry"></dl>
+      <div class="tanks" id="tanks" role="img" aria-label="Tank levels"></div>
+    </div>
+
+    <div class="truck" id="truck" hidden></div>
+
+    <details class="advanced">
+      <summary>Adjust the assumptions</summary>
+      <div class="params" id="params"></div>
+    </details>
   </aside>
 
   <section class="timeline" aria-label="Timeline">
@@ -96,12 +94,12 @@
         <svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-icon" d="M4 2.5v11l9-5.5z"/></svg>
       </button>
       <div class="tabs speeds" role="group" aria-label="Speed">
-        <button type="button" data-speed="1" aria-pressed="false">1 min/s</button>
-        <button type="button" data-speed="5" aria-pressed="false">5</button>
-        <button type="button" data-speed="15" aria-pressed="true">15</button>
-        <button type="button" data-speed="40" aria-pressed="false">40</button>
+        <button type="button" data-speed="5" aria-pressed="false">Slow</button>
+        <button type="button" data-speed="15" aria-pressed="true">Normal</button>
+        <button type="button" data-speed="40" aria-pressed="false">Fast</button>
+        <button type="button" data-speed="90" aria-pressed="false">Faster</button>
       </div>
-      <button type="button" class="ghost" id="to-peak">Jump to queue peak</button>
+      <button type="button" class="ghost" id="to-peak">Show the busiest moment</button>
     </div>
     <div class="strip">
       <svg id="strip" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -113,14 +111,20 @@
 
 </main>
 
+<footer class="foot">
+  <p>Independent university project, not affiliated with Mutti.</p>
+</footer>
+
 <dialog id="info" aria-labelledby="info-title">
   <div class="info">
     <div class="info-head">
-      <h2 id="info-title">Sources and limits</h2>
+      <h2 id="info-title">About and sources</h2>
       <button type="button" class="ghost" id="info-close">Close</button>
     </div>
     <p><strong>Independent university project, not affiliated with Mutti.</strong> Smart Industry course, University of Twente, challenge “From Workflow to Wisdom”. The case is the Montechiarugolo plant, rebuilt from public sources only. The Mutti logo and brand are not used.</p>
     <p>The model moves one minute at a time. Each truck goes from the gate to core sampling, waits for the lab result, then unloads in a bay only when a tank has room for the whole load. The line draws from the fullest tank. The 3D scene replays each truck’s log: it is not connected to real plant data.</p>
+    <h3>Free arrival and planned slots</h3>
+    <p>With free arrival the trucks turn up when they like: 60% of them between 6:00 and 14:00, the rest across the day. This profile is our assumption. With planned slots each truck is given a time, spread evenly over 24 hours. Everything else stays the same, so the difference in the results comes from the arrival times alone.</p>
     <h3>Parameters</h3>
     <table class="info-table" id="info-params"></table>
     <h3>Sources</h3>
@@ -128,14 +132,15 @@
       <li><a href="https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/" rel="noopener">Linkiesta, August 2025</a> (Italian): 260 trucks and about 6,000 t a day on peak days.</li>
       <li><a href="https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/" rel="noopener">Terra e Vita, about 2019</a> (Italian): eight trucks an hour unloaded at full capacity.</li>
       <li><a href="https://www.smau.it/FRONTEND/Casi%20Successo%20PDF/MUTTI_Premio%20Innovazione%20Smau%202022.pdf" rel="noopener">SMAU 2022, Mutti case</a> (Italian): sampling, sorting and lab analysis.</li>
+      <li><a href="https://apps.arpae.it/documento/DAMB20212600" rel="noopener">ARPAE, permit DAMB/2021/2600</a> (Italian): authorised capacity of 3,200 t a day of finished product.</li>
       <li><a href="https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf" rel="noopener">Mutti, 2022 press release</a>: receiving open 24 hours a day during the harvest.</li>
       <li>Public video of a plant visit, 2025 harvest: five tanks of about four truckloads each, and core sampling on every truck.</li>
     </ul>
     <h3>Limits</h3>
     <ul>
       <li>Three internal numbers are missing: core sampling time, waits at the gate and the share of rejected loads. The model shows mechanisms and orders of magnitude, not forecasts.</li>
+      <li>The public figure of 8 trucks an hour at full capacity does not fit 260 trucks a day (about 11 an hour needed). It is one of the questions for Mutti.</li>
       <li>Times are fixed. In reality they vary from truck to truck.</li>
-      <li>Today’s arrival profile is an assumption: 60% of trucks between 6:00 and 14:00.</li>
       <li>The model does not track load quality (Brix, pH, colour) or blending in the tanks.</li>
       <li>The 3D layout is schematic: positions and distances are not those of the plant.</li>
     </ul>

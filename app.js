@@ -15,9 +15,14 @@ const PARAMS = [
   { key: 'labMin', name: 'Lab minutes', tag: 'estimate', min: 10, max: 60, step: 5, unit: ' min', src: 'No public data.' },
   { key: 'rejectRate', name: 'Rejected loads', tag: 'ask Mutti', min: 0, max: 10, step: 0.5, unit: '%', pct: true, src: 'Assumed 1 to 3%.' },
   { key: 'bays', name: 'Unloading bays', tag: 'estimate', min: 1, max: 5, step: 1, unit: '', src: 'Not public.' },
-  { key: 'unloadMin', name: 'Minutes per unload', tag: 'estimate', min: 8, max: 30, step: 1, unit: ' min', src: '3 bays at 16 minutes give about 11 trucks an hour.' },
+  { key: 'unloadMin', name: 'Minutes per unload', tag: 'estimate', min: 8, max: 30, step: 1, unit: ' min', src: '10 to 15 minutes in our report. 3 bays at 15 minutes give 12 trucks an hour.' },
   { key: 'lineRate', name: 'Line, tonnes per hour', tag: 'estimate', min: 100, max: 320, step: 5, unit: ' t/h', src: '6,000 t in 24 hours is 250 t/h.' },
 ];
+
+const MODE_NOTES = {
+  libero: 'Trucks turn up when they like, mostly between 6:00 and 14:00. This is our assumption of how it works today.',
+  piano: 'Each truck is given a time slot, spread evenly over the day.',
+};
 
 const state = { ...DEFAULTS, t: 360, playing: !reducedMotion, speed: 15, selected: null, view: 'panoramica' };
 let result = null;
@@ -90,22 +95,28 @@ function recompute() {
   const plan = state.mode === 'piano' ? result.kpi : other.kpi;
 
   $('#title').textContent = SCENARIOS[state.scenario].label;
-  $('#scenario-note').textContent = SCENARIOS[state.scenario].note;
   press('[data-scenario]', 'scenario', state.scenario);
   press('[data-mode]', 'mode', state.mode);
-  $('#finding').textContent = `With today’s arrivals the gate queue reaches ${free.gateQueueMax} trucks and the line runs without product for ${fmtDec(free.starvedHours)} h. With slots: ${plan.gateQueueMax} trucks and ${fmtDec(plan.starvedHours)} h.${state.scenario === 'linea' ? ` During the stop the tanks fill up and a truck waits up to ${fmtShort(free.dockWaitMax)} to unload.` : ''}`;
+  const starved = (k) => (k.starvedHours >= 0.1 ? `${fmtDec(k.starvedHours)} h` : 'none');
+  $('#finding').textContent = free.gateQueueMax === plan.gateQueueMax && free.starvedHours === plan.starvedHours
+    ? 'In this scenario planning the arrivals changes nothing.'
+    : `Without planning, up to ${free.gateQueueMax} trucks queue at the gate. With planned slots, ${plan.gateQueueMax}.`;
+  $('#mode-note').textContent = MODE_NOTES[state.mode];
 
   const rows = [
-    ['Longest gate queue', `${free.gateQueueMax}`, `${plan.gateQueueMax}`],
-    ['Average wait at the gate', fmtShort(free.gateWaitAvg), fmtShort(plan.gateWaitAvg)],
-    ['Arrival to unloaded', fmtShort(free.dockWaitAvg), fmtShort(plan.dockWaitAvg)],
-    ['Line without product', `${fmtDec(free.starvedHours)} h`, `${fmtDec(plan.starvedHours)} h`],
-    ['Rejected loads', `${free.rejected}`, `${plan.rejected}`],
-    ['Tonnes processed', fmtInt(free.processedTons), fmtInt(plan.processedTons)],
+    ['Trucks waiting at the gate, at worst', `${free.gateQueueMax}`, `${plan.gateQueueMax}`],
+    ['Average time from arrival to unloaded', fmtShort(free.dockWaitAvg), fmtShort(plan.dockWaitAvg)],
+    ['Line without product', starved(free), starved(plan)],
   ];
   const on = (m) => (state.mode === m ? ' class="on"' : '');
-  $('#compare').innerHTML = `<thead><tr><th scope="col"><span class="sr">Indicator</span></th><th scope="col"${on('libero')}><span>As today</span></th><th scope="col"${on('piano')}><span>Slots</span></th></tr></thead>
-    <tbody>${rows.map((r) => `<tr><th scope="row">${r[0]}</th><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join('')}</tbody>`;
+  const tbl = $('#compare');
+  tbl.innerHTML = `<thead><tr><th scope="col"><span class="sr">Indicator</span></th><th scope="col"${on('libero')}><span>Free arrival</span></th><th scope="col"${on('piano')}><span>Planned slots</span></th></tr></thead>
+    <tbody>${rows.map((r) => `<tr><th scope="row">${r[0]}</th><td class="num${state.mode === 'libero' ? ' on' : ''}">${r[1]}</td><td class="num${state.mode === 'piano' ? ' on' : ''}">${r[2]}</td></tr>`).join('')}</tbody>`;
+  if (!reducedMotion) {
+    tbl.classList.remove('swap');
+    void tbl.offsetWidth;
+    tbl.classList.add('swap');
+  }
 
   const scrub = $('#scrub');
   scrub.max = String(result.minutes.count - 1);
@@ -186,18 +197,14 @@ function updatePanels(f) {
   }
   const processed = result.minutes.processed[Math.min(minute, result.minutes.count - 1)];
   const rows = [
-    ['Queuing at the gate', `${c.gate}`],
-    ['Core sampling', `${c.sample}/${p.stations}`],
-    ['Waiting for lab result', `${c.result}`],
+    ['Waiting at the gate', `${c.gate}`],
+    ['In sampling and lab', `${c.sample + c.result}`],
     ['Waiting to unload', `${c.dock}`],
     ['Unloading', `${c.unload}/${p.bays}`],
-    ['Unloaded so far', `${c.done}`],
-    ['Rejected so far', `${c.refused}`],
-    ['Product in tanks', `${fmtInt(inTanks)} t`],
-    ['Processed so far', `${fmtInt(processed)} t`],
   ];
   $('#telemetry').innerHTML = rows.map((r) => `<div><dt>${r[0]}</dt><dd class="num">${r[1]}</dd></div>`).join('');
-  $('#tanks').innerHTML = levels.map((v, k) => `<div class="tank"><span class="tank-bar"><span style="height:${Math.min(100, v * 100).toFixed(1)}%"></span></span><span class="num">${Math.round(v * 100)}%</span><span class="tank-name">T${k + 1}</span></div>`).join('');
+  $('#tanks').setAttribute('aria-label', `Tank levels: ${levels.map((v) => Math.round(v * 100) + '%').join(', ')}`);
+  $('#tanks').innerHTML = levels.map((v, k) => `<div class="tank"><span class="tank-bar"><span style="height:${Math.min(100, v * 100).toFixed(1)}%"></span></span><span class="tank-name">T${k + 1}</span></div>`).join('');
   updateTruck(f);
   $('#scrub').value = String(minute);
   $('#scrub').setAttribute('aria-valuetext', `Day ${dayOf(t)}, ${clock(t)}`);
@@ -209,9 +216,10 @@ function updateTruck(f) {
   const host = $('#truck');
   const id = state.selected;
   if (id === null) {
-    host.innerHTML = '<p class="empty">Tap a truck in the scene to see its journey.</p>';
+    host.hidden = true;
     return;
   }
+  host.hidden = false;
   const tr = result.trucks[id];
   const p = result.params;
   const s = f.trucks[id];

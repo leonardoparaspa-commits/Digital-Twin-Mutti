@@ -8,9 +8,11 @@ In the project's to-be process the twin is step ③: it takes the arrival foreca
 
 ## How to use it
 
-- **The scene**: drag to rotate, scroll or pinch to zoom. Tap a truck to see its journey and follow it with the camera. The buttons at the top switch to the gate view and the unloading view.
-- **Time**: play and pause (also with the space bar), four speeds, and a timeline you can drag. The red line is the gate queue and the grey line is the queue to unload; the shaded bands mark hours when the line has no product or is stopped.
-- **Scenarios and parameters**: on the left. Every change reruns both days and the "As today vs slots" table.
+- **Scenarios**: the four cards at the top are the main control. Each one changes the day the twin plays.
+- **How the trucks arrive**: *Free arrival* means trucks turn up when they like, mostly between 6:00 and 14:00 (our assumption of today). *Planned slots* means each truck gets a time, spread evenly over 24 hours. Nothing else changes, so the difference in the results comes from the arrival times alone. The right panel compares the two for the chosen scenario.
+- **The scene**: drag to rotate, scroll or pinch to zoom. Tap a truck to see its journey and follow it with the camera. The buttons at the top of the scene switch to the gate view and the unloading view.
+- **Time**: play and pause (also with the space bar), four speeds, and a timeline you can drag. The red line is the gate queue and the white line is the queue to unload; the shaded bands mark hours when the line has no product or is stopped.
+- **Assumptions**: the numbers behind the model sit under "Adjust the assumptions", each tagged real, estimate or ask Mutti.
 
 Running it:
 
@@ -60,7 +62,7 @@ The figures come from public sources or our own calculations. **Real** marks a n
 | Lab minutes | 30 | estimate | no public data |
 | Rejected loads | 2% (1 to 3%) | ask Mutti | no public data |
 | Unloading bays | 3 | estimate | not public |
-| Minutes per unload | 16 | estimate | 3 bays at 16 minutes give about 11 trucks an hour, the pace of 260 trucks in 24 hours |
+| Minutes per unload | 15 (10 to 15) | estimate | 60 ÷ 8 trucks an hour = 7.5 minutes with one bay, 15 with two; bays not public. 3 bays at 15 minutes give 12 trucks an hour, enough for 260 trucks in 24 hours |
 | Tanks | 5 of 100 t | real | plant visit video: 4 truckloads per tank |
 | Line | 250 t/h | estimate | 6,000 t ÷ 24 hours |
 | Tanks at start of day | 80% (0% at season start) | estimate | plant already running from the day before |
