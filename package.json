@@ -5,7 +5,7 @@
   "description": "Digital twin del ricevimento del pomodoro durante la campagna. Progetto universitario indipendente, non affiliato a Mutti.",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/sim.test.mjs"
+    "test": "node --test tests/sim.test.mjs tests/layout.test.mjs"
   },
   "license": "MIT"
 }

@@ -65,3 +65,40 @@ test('la linea lavora dal primo minuto, tranne nello scenario della linea ferma'
   const at14 = stop.find((x) => x.t === 840).processed;
   assert.ok(at14 - at10 < 5, `lavorate durante la fermata: ${at14 - at10}`);
 });
+
+test('ogni camion passa le fasi in ordine e le risorse non sono mai sovraccariche', () => {
+  for (const scenario of Object.keys(SCENARIOS)) {
+    for (const mode of ['libero', 'piano']) {
+      const r = simulate({ scenario, mode, trucks: SCENARIOS[scenario].trucks });
+      const p = r.params;
+      for (const x of r.trucks) {
+        assert.ok(x.sampleStart >= x.arr);
+        assert.equal(x.resultAt, x.sampleStart + p.sampleMin + p.labMin);
+        if (x.rejected) {
+          assert.equal(x.bay, -1);
+          continue;
+        }
+        assert.ok(x.unloadStart >= x.resultAt);
+        assert.equal(x.deposit, x.unloadStart + p.unloadMin);
+        assert.ok(x.bay >= 0 && x.bay < p.bays && x.tank >= 0 && x.tank < p.tanks);
+      }
+      const busy = (key, start, end) => {
+        const byRes = new Map();
+        for (const x of r.trucks) {
+          if (x[key] < 0 || x[start] === null) continue;
+          const list = byRes.get(x[key]) ?? [];
+          list.push([x[start], end(x)]);
+          byRes.set(x[key], list);
+        }
+        for (const list of byRes.values()) {
+          list.sort((a, b) => a[0] - b[0]);
+          for (let i = 1; i < list.length; i++) assert.ok(list[i][0] >= list[i - 1][1]);
+        }
+      };
+      busy('station', 'sampleStart', (x) => x.sampleStart + p.sampleMin);
+      busy('bay', 'unloadStart', (x) => x.deposit);
+      const { levels, count } = r.minutes;
+      for (let i = 0; i < count * p.tanks; i++) assert.ok(levels[i] >= -1e-6 && levels[i] <= p.tankCap + 1e-6);
+    }
+  }
+});

@@ -2,15 +2,19 @@
 
 **Progetto universitario indipendente, non affiliato a Mutti.** Corso Smart Industry, University of Twente, sfida "From Workflow to Wisdom". Il logo e il marchio Mutti non sono usati.
 
-È una pagina web che simula il ricevimento del pomodoro in uno stabilimento di trasformazione durante la campagna. Il caso di riferimento è lo stabilimento Mutti di Montechiarugolo (Parma), ricostruito solo da fonti pubbliche. Il modello segue ogni camion dal cancello al carotaggio, all'esito di laboratorio, allo scarico, alle cinque vasche e alla linea di lavorazione. Poi confronta gli arrivi di oggi, senza slot, con arrivi in slot pianificati.
+È un digital twin 3D del ricevimento del pomodoro in uno stabilimento di trasformazione durante la campagna. Nella scena si vedono i camion arrivare, aspettare al cancello, passare al carotaggio, scaricare nelle baie e riempire le vasche, minuto per minuto, con i dati dal vivo accanto. Il caso di riferimento è lo stabilimento Mutti di Montechiarugolo (Parma), ricostruito solo da fonti pubbliche. Il modello segue ogni camion dal cancello al carotaggio, all'esito di laboratorio, allo scarico, alle cinque vasche e alla linea di lavorazione. Poi confronta gli arrivi di oggi, senza slot, con arrivi in slot pianificati.
 
 Nel processo to-be del progetto il twin è il passaggio ③: riceve le previsioni di arrivo e propone slot dei camion e piano delle vasche.
 
 ## Come si usa
 
+- **La scena**: trascina per ruotare, rotella o due dita per lo zoom. Tocca un camion per vedere il suo percorso e seguirlo con la camera. I pulsanti in alto portano alle viste del cancello e dello scarico.
+- **Il tempo**: play e pausa (anche con la barra spaziatrice), quattro velocità, e la linea del tempo da trascinare. La linea rossa è la coda al cancello, quella grigia l'attesa dello scarico; le fasce segnano le ore con la linea senza prodotto o ferma.
+- **Scenari e parametri**: a sinistra. Ogni cambio ricalcola i due giorni e la tabella "Come oggi contro slot".
+
 - **Online**: con GitHub Pages attivo, la pagina è servita dalla radice del ramo `main`.
 - **In locale**: dalla cartella del progetto lancia `python3 -m http.server 8000` e apri `http://localhost:8000`. La pagina usa moduli JavaScript, quindi non funziona aprendo `index.html` con un doppio clic.
-- **Test del modello**: `npm test`. Serve Node 18 o successivo, senza dipendenze da installare.
+- **Test**: `npm test`. Serve Node 18 o successivo, senza dipendenze da installare.
 
 ## Il modello
 
@@ -19,7 +23,7 @@ Il modello avanza di un minuto alla volta per due giorni, così la coda del prim
 1. **Arrivo**: il camion entra nella coda del cancello, in ordine di arrivo.
 2. **Carotaggio**: una postazione libera prende il primo camion della coda e resta occupata per i minuti del campione.
 3. **Laboratorio**: l'esito arriva dopo i minuti di laboratorio, senza tenere occupata la postazione. Con la probabilità indicata il carico è rifiutato e il camion esce dal modello, perché lo vende altrove.
-4. **Scarico**: il camion accettato aspetta una baia libera. Finito lo scarico, versa il carico nella vasca con più spazio. Se nessuna vasca ha spazio per un carico intero, il camion resta fermo nella baia e la baia non accetta altri camion.
+4. **Scarico**: il camion accettato aspetta una baia libera. Entra solo se una vasca ha spazio per tutto il carico: la vasca con più spazio libero viene prenotata e il carico arriva a fine scarico. Se le vasche sono piene, i camion aspettano in coda e le baie restano libere.
 5. **Vasche e linea**: la linea prende prodotto dalla vasca più piena alla velocità indicata. Se nelle vasche non c'è abbastanza prodotto, il minuto conta come linea senza prodotto.
 
 ### Scenari
@@ -70,18 +74,26 @@ Un dato storico di [Terra e Vita](https://terraevita.edagricole.it/fare-filiera/
 - La linea lavora a velocità costante, senza avvii lenti o cambi di formato.
 - Le fonti sono state lette da estratti di ricerca e vanno aperte e verificate prima della consegna.
 
+## La scena 3D
+
+Il modello scrive per ogni camion un diario: arrivo, postazione e inizio del carotaggio, esito, baia, vasca, inizio e fine dello scarico. Salva anche, minuto per minuto, il livello di ogni vasca, le tonnellate lavorate e lo stato della linea. La scena rilegge questi dati: in ogni istante calcola dove deve stare ogni camion e lo porta lì con un movimento morbido. Non è collegata a dati reali dello stabilimento: è un gemello del modello, pronto a ricevere orari di arrivo veri quando ci saranno.
+
+La pianta è schematica. Le aree (piazzale, cancello, carotaggio, attesa dell'esito, attesa dello scarico, baie, vasche, linea) seguono l'ordine del flusso, non le posizioni reali.
+
 ## File
 
 - `index.html`, `styles.css`: la pagina.
 - `sim.js`: il modello, senza dipendenze, usato sia dalla pagina sia dai test.
-- `app.js`: collega cursori, scenari e grafici al modello.
-- `tests/sim.test.mjs`: controlli del modello (le tonnellate si conservano, ogni camion è accettato o rifiutato, la linea lavora dal primo minuto, risultati ripetibili).
-- `assets/`: fotografie di atmosfera.
+- `layout.js`: la pianta e la posizione di ogni camion in un dato minuto, senza dipendenze.
+- `scene.js`: la scena 3D con Three.js.
+- `app.js`: collega scenari, parametri, linea del tempo e pannelli al modello e alla scena.
+- `vendor/three/`: Three.js 0.169.0 con la sua licenza, incluso nel sito per non dipendere da una CDN.
+- `tests/`: controlli del modello (le tonnellate si conservano, ogni camion passa le fasi in ordine, postazioni e baie non sono mai sovraccariche, risultati ripetibili) e della scena (conteggi uguali alle code del modello, nessun posto occupato da due camion).
 
 ## Crediti
 
-- Fotografie da [Unsplash](https://unsplash.com/license), tramite picsum.photos: Matt Benson (campi dall'alto), Gozha Net (trattore), Martin Dörsch (strada tra i campi), Crucifix Jean-Luc (temporale), elizabeth lies (terra arata). Sono immagini di atmosfera e non mostrano Mutti né i suoi fornitori.
-- Carattere Inter (SIL Open Font License), da Google Fonts.
+- [Three.js](https://threejs.org) (licenza MIT).
+- Caratteri Public Sans e JetBrains Mono (SIL Open Font License), da Google Fonts.
 
 ## Licenza
 
