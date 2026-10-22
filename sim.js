@@ -11,7 +11,7 @@ export const DEFAULTS = {
   labMin: 30, // minuti di laboratorio dopo il campione (STIMATO)
   rejectRate: 0.02, // quota di carichi rifiutati (DA CHIEDERE a Mutti, ipotesi 1-3%)
   bays: 3, // baie di scarico (non pubblico)
-  unloadMin: 16, // minuti per scarico in una baia (STIMATO, 3 baie = circa 11 camion/h)
+  unloadMin: 15, // minuti per scarico in una baia (STIMATO, 10-15 min nel report; 3 baie = 12 camion/h)
   tanks: 5, // vasche (REALE, video)
   tankCap: 100, // t per vasca (REALE, video: circa 4 camion)
   lineRate: 250, // t/h in lavorazione (STIMATO, 6.000 t / 24 h)
