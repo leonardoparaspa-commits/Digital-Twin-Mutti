@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital twin del ricevimento del pomodoro</title>
+<meta name="description" content="Simulazione del ricevimento del pomodoro durante la campagna: camion, carotaggio, vasche e linea. Progetto universitario indipendente, non affiliato a Mutti.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <a class="mark" href="#top" aria-label="Inizio">Ricevimento · digital twin</a>
+  <nav aria-label="Principale">
+    <a href="#simulatore">Simulatore</a>
+    <a href="#flusso">Flusso</a>
+    <a href="#numeri">Numeri</a>
+    <a href="#fonti">Fonti</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="hero-copy">
+    <h1 class="reveal">Il ricevimento del pomodoro</h1>
+    <p class="reveal">Provato prima di farlo. Un modello del flusso in una giornata di campagna: dai camion al cancello, dal carotaggio alle cinque vasche e alla linea. Cambia i parametri e guarda cosa succede.</p>
+    <a class="button reveal" href="#simulatore">Apri il simulatore</a>
+  </div>
+  <figure class="motif">
+    <img src="assets/foto-955.jpg" width="1600" height="1000" alt="Campi coltivati visti dall’alto, a file diagonali verdi e dorate">
+  </figure>
+</section>
+
+<section id="simulatore" class="sim">
+  <div class="sim-head">
+    <h2 class="reveal">Una giornata di campagna</h2>
+    <p class="reveal">Scegli uno scenario, poi regola i parametri. Il modello usa un minuto come passo e gira due giorni, così la coda ha il tempo di svuotarsi.</p>
+  </div>
+
+  <div class="sim-grid">
+    <div class="controls">
+      <fieldset class="scenarios">
+        <legend>Scenario</legend>
+        <div class="seg" role="group" aria-label="Scenario">
+          <button type="button" data-scenario="picco" aria-pressed="true">Giorno di picco</button>
+          <button type="button" data-scenario="pioggia" aria-pressed="false">Pioggia e ondata</button>
+          <button type="button" data-scenario="linea" aria-pressed="false">Linea ferma</button>
+          <button type="button" data-scenario="avvio" aria-pressed="false">Inizio campagna</button>
+        </div>
+        <p class="note" id="scenario-note"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Arrivi dei camion</legend>
+        <div class="seg" role="group" aria-label="Modalità di arrivo">
+          <button type="button" data-mode="libero" aria-pressed="true">Come oggi, senza slot</button>
+          <button type="button" data-mode="piano" aria-pressed="false">Slot pianificati</button>
+        </div>
+      </fieldset>
+
+      <div class="params">
+        <label class="param">
+          <span class="param-name">Camion nel giorno <em class="tag reale">reale</em></span>
+          <span class="param-value" data-out="trucks"></span>
+          <input type="range" min="100" max="300" step="5" value="260" data-param="trucks">
+          <span class="param-src">Fino a 260 nei giorni di punta (Linkiesta, 2025).</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Tonnellate per camion <em class="tag stimato">stima</em></span>
+          <span class="param-value" data-out="tonsPerTruck"></span>
+          <input type="range" min="18" max="30" step="1" value="24" data-param="tonsPerTruck">
+          <span class="param-src">Da 22 a 27 t: un calcolo dai dati pubblici.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Postazioni di carotaggio <em class="tag stimato">stima</em></span>
+          <span class="param-value" data-out="stations"></span>
+          <input type="range" min="1" max="6" step="1" value="4" data-param="stations">
+          <span class="param-src">Da 3 a 5 al picco, con un ciclo ipotetico.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Minuti per campione <em class="tag chiedere">da chiedere</em></span>
+          <span class="param-value" data-out="sampleMin"></span>
+          <input type="range" min="5" max="40" step="1" value="20" data-param="sampleMin">
+          <span class="param-src">Il dato interno che manca di più. Va chiesto a Mutti.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Baie di scarico <em class="tag stimato">stima</em></span>
+          <span class="param-value" data-out="bays"></span>
+          <input type="range" min="1" max="5" step="1" value="3" data-param="bays">
+          <span class="param-src">Il numero non è pubblico.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Minuti per scarico <em class="tag stimato">stima</em></span>
+          <span class="param-value" data-out="unloadMin"></span>
+          <input type="range" min="8" max="30" step="1" value="16" data-param="unloadMin">
+          <span class="param-src">Con 3 baie da 16 minuti si arriva a circa 11 camion all’ora.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Linea, tonnellate all’ora <em class="tag stimato">stima</em></span>
+          <span class="param-value" data-out="lineRate"></span>
+          <input type="range" min="150" max="300" step="5" value="250" data-param="lineRate">
+          <span class="param-src">6.000 t in 24 ore fanno 250 t/h.</span>
+        </label>
+        <label class="param">
+          <span class="param-name">Carichi rifiutati <em class="tag chiedere">da chiedere</em></span>
+          <span class="param-value" data-out="rejectRate"></span>
+          <input type="range" min="0" max="10" step="0.5" value="2" data-param="rejectRate">
+          <span class="param-src">Ipotesi da 1 a 3%. Nessun dato pubblico.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="output" aria-live="polite">
+      <div class="kpis" id="kpis"></div>
+
+      <div class="tanks-wrap">
+        <h3>Le cinque vasche nel momento più pieno</h3>
+        <svg id="tanks" viewBox="0 0 600 150" role="img" aria-label="Livello delle cinque vasche"></svg>
+      </div>
+
+      <div class="chart-wrap">
+        <h3>Camion in coda nelle due giornate</h3>
+        <svg id="chart" viewBox="0 0 600 180" role="img" aria-label="Coda al cancello e in attesa dello scarico nel tempo"></svg>
+        <p class="legend"><span class="sw sw-queue"></span>Coda al cancello <span class="sw sw-dock"></span>In attesa di scarico</p>
+      </div>
+
+      <div class="compare">
+        <h3>Come oggi contro slot pianificati</h3>
+        <p>Stesso scenario, stessi parametri: cambia solo il modo in cui arrivano i camion.</p>
+        <table id="compare"></table>
+      </div>
+    </div>
+  </div>
+
+  <p class="sim-foot">Il modello serve a capire i meccanismi, non a prevedere lo stabilimento. I valori segnati come stima o da chiedere vanno validati prima di usarli per decidere. Il profilo degli arrivi di oggi, con più camion nelle ore centrali, è un’ipotesi.</p>
+</section>
+
+<section class="weather">
+  <figure class="weather-pic">
+    <img src="assets/foto-542.jpg" width="1600" height="1000" loading="lazy" alt="Pascolo verde sotto un cielo grigio di temporale">
+  </figure>
+  <div class="weather-copy">
+    <h2 class="reveal">Il meteo cambia il piano</h2>
+    <blockquote class="reveal">
+      <p>“Basta un cambio del tempo e devi rifare tutta la pianificazione. Non lo sai fino all’ultimo minuto.”</p>
+      <footer>Un agricoltore fornitore, nel video della visita alla campagna 2025. Frase tradotta dalla trascrizione automatica.</footer>
+    </blockquote>
+    <p class="reveal">La pioggia ferma la raccolta, poi i camion arrivano tutti insieme. Lo scenario “Pioggia e ondata” mostra cosa succede al cancello e cosa cambia con gli slot.</p>
+  </div>
+</section>
+
+<section id="flusso" class="flow">
+  <div class="flow-copy">
+    <h2 class="reveal">Il flusso che il modello replica</h2>
+    <ol class="steps">
+      <li class="reveal"><h3>Il camion arriva al cancello</h3><p>Dal campo arriva in circa due ore. Nel modello aspetta una postazione di carotaggio libera.</p></li>
+      <li class="reveal"><h3>Carotaggio e laboratorio</h3><p>Si preleva un campione di circa 15 chili, lo si lava e lo si analizza. Il laboratorio decide se il carico è accettato. Il camion rifiutato vende altrove ed esce dal modello.</p></li>
+      <li class="reveal"><h3>Scarico nelle baie</h3><p>Il camion accettato entra in una baia e scarica solo se una vasca ha spazio per il suo carico.</p></li>
+      <li class="reveal"><h3>Cinque vasche e la linea</h3><p>Ogni vasca riceve circa quattro camion. La linea prende dalla vasca più piena. Se le vasche sono vuote, la linea resta senza prodotto.</p></li>
+    </ol>
+  </div>
+  <div class="flow-pics">
+    <figure class="round"><img src="assets/foto-85.jpg" width="1600" height="1000" loading="lazy" alt="Trattore che tira un rimorchio in un campo dorato"></figure>
+    <figure class="round round-small"><img src="assets/foto-387.jpg" width="1600" height="1000" loading="lazy" alt="Strada sterrata tra campi piatti sotto un cielo blu"></figure>
+  </div>
+</section>
+
+<section id="numeri" class="numbers">
+  <h2 class="reveal">Le cifre che abbiamo e quelle che mancano</h2>
+  <div class="facts">
+    <div class="fact fact-red reveal">
+      <p class="big">260</p>
+      <p>camion al giorno nei giorni di punta a Montechiarugolo, per circa 6.000 t di pomodoro fresco.</p>
+    </div>
+    <div class="fact fact-ink reveal">
+      <p class="big">8</p>
+      <p>camion all’ora in scarico a pieno regime, dato storico. Con 260 camion al giorno ne servono circa 11.</p>
+    </div>
+    <div class="fact fact-mid reveal">
+      <p class="big">3</p>
+      <p>numeri interni da chiedere a Mutti: attese al cancello, durata del carotaggio e quota di carichi rifiutati.</p>
+    </div>
+  </div>
+</section>
+
+<section id="fonti" class="sources">
+  <div class="sources-copy">
+    <h2 class="reveal">Fonti e limiti</h2>
+    <ul>
+      <li><a href="https://www.linkiesta.it/2025/08/dentro-ai-campi-delle-conserve-di-pomodoro/" rel="noopener">Linkiesta, agosto 2025</a>: 260 camion e circa 6.000 t al giorno nei giorni di punta.</li>
+      <li><a href="https://terraevita.edagricole.it/fare-filiera/mutti-la-ferrari-del-pomodoro-premia/" rel="noopener">Terra e Vita, circa 2019</a>: otto camion all’ora a pieno regime e trasporto organizzato da Mutti.</li>
+      <li><a href="https://www.smau.it/FRONTEND/Casi%20Successo%20PDF/MUTTI_Premio%20Innovazione%20Smau%202022.pdf" rel="noopener">SMAU 2022, caso Mutti</a>: campione di circa 20 chili, cernita e analisi in laboratorio.</li>
+      <li><a href="https://apps.arpae.it/documento/DAMB20212600" rel="noopener">ARPAE, AIA DAMB/2021/2600</a>: capacità autorizzata di 3.200 t al giorno di prodotto finito.</li>
+      <li><a href="https://mutti-parma.com/app/uploads/2022/10/cs--mutti-tomato-processing-season-results-2022-def-en-1.pdf" rel="noopener">Mutti, comunicato 2022</a>: ricevimento aperto 24 ore su 24 durante la campagna.</li>
+      <li>Video pubblico della visita allo stabilimento, campagna 2025: cinque vasche con quattro camion ciascuna e carotaggio su ogni camion.</li>
+    </ul>
+    <p>Le fonti pubbliche non danno attese al cancello, numero di baie o regole di pianificazione. Dove mancano, il modello usa stime e le segna come tali.</p>
+  </div>
+  <figure class="round round-big"><img src="assets/foto-808.jpg" width="1600" height="1000" loading="lazy" alt="Terra arata accanto a un campo verde"></figure>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p class="foot-name">Ricevimento · digital twin</p>
+  <p>Progetto universitario indipendente, non affiliato a Mutti. Il logo e il marchio Mutti non sono usati in questa pagina. Codice e modello con licenza MIT.</p>
+  <p class="credits">Fotografie di atmosfera da Unsplash, tramite picsum.photos: Matt Benson (campi dall’alto), Gozha Net (trattore), Martin Dörsch (strada tra i campi), Crucifix Jean-Luc (temporale), elizabeth lies (terra arata). Non mostrano Mutti né i suoi fornitori.</p>
+</footer>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

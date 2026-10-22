@@ -1,0 +1,11 @@
+{
+  "name": "pomodoro-digital-twin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Digital twin del ricevimento del pomodoro durante la campagna. Progetto universitario indipendente, non affiliato a Mutti.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/sim.test.mjs"
+  },
+  "license": "MIT"
+}
