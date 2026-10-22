@@ -28,16 +28,16 @@ const ARRIVE = 3; // minuti sulla strada prima del cancello
 const LEAVE = 6; // minuti per uscire dopo lo scarico o il rifiuto
 
 export const PHASES = {
-  road: 'In arrivo',
-  gate: 'In coda al cancello',
-  sample: 'Carotaggio',
-  result: 'Attesa esito',
-  rejected: 'Rifiutato, esce',
-  dock: 'Attesa scarico',
-  unload: 'Scarico',
-  leave: 'Scaricato, esce',
-  gone: 'Fuori impianto',
-  later: 'Non ancora partito',
+  road: 'Arriving',
+  gate: 'Queuing at the gate',
+  sample: 'Core sampling',
+  result: 'Waiting for the lab result',
+  rejected: 'Rejected, leaving',
+  dock: 'Waiting to unload',
+  unload: 'Unloading',
+  leave: 'Unloaded, leaving',
+  gone: 'Left the plant',
+  later: 'Not yet on the road',
 };
 
 export const across = (i, n, pitch) => MID_Z + (i - (n - 1) / 2) * pitch;

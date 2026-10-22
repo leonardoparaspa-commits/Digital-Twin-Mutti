@@ -278,7 +278,7 @@ export function createTwin(host, { onSelect, reducedMotion }) {
         gate: zone('', -110, yard.z0 - 6),
         overflow: zone('', ZONES.road.to - 40, ZONES.road.z + 9, 4),
         sample: zone('', ZONES.stationX, stationZ(0, p.stations) - 6, 12),
-        lab: zone('Laboratorio', ZONES.lab.x - 16, ZONES.lab.z - 4, 6),
+        lab: zone('Lab', ZONES.lab.x - 16, ZONES.lab.z - 4, 6),
         result: zone('', (ZONES.result.front + res.back) / 2, res.z1 + 5, 4),
         dock: zone('', (ZONES.dock.front + dock.back) / 2, dock.z0 - 4),
         unload: zone('', ZONES.bayX, bz0 - 4, 12),
@@ -428,15 +428,15 @@ export function createTwin(host, { onSelect, reducedMotion }) {
 
     const c = f.counts;
     const L2 = parts.labels;
-    L2.gate.element.textContent = `Coda al cancello  ${c.gate}`;
-    L2.overflow.element.textContent = c.overflowGate ? `+${c.overflowGate} in strada` : '';
+    L2.gate.element.textContent = `Gate queue  ${c.gate}`;
+    L2.overflow.element.textContent = c.overflowGate ? `+${c.overflowGate} on the road` : '';
     L2.overflow.element.hidden = !c.overflowGate;
-    L2.sample.element.textContent = `Carotaggio  ${c.sample}/${p.stations}`;
-    L2.result.element.textContent = `Attesa esito  ${c.result}`;
-    L2.dock.element.textContent = `Attesa scarico  ${c.dock}${c.overflowDock ? ` (+${c.overflowDock} fuori vista)` : ''}`;
-    L2.unload.element.textContent = `Scarico  ${c.unload}/${p.bays}`;
-    L2.tanks.element.textContent = `Vasche  ${Math.round(inTanks)} t`;
-    L2.line.element.textContent = line === LINE.RUNNING ? 'Linea  in marcia' : line === LINE.STOPPED ? 'Linea  ferma' : 'Linea  senza prodotto';
+    L2.sample.element.textContent = `Core sampling  ${c.sample}/${p.stations}`;
+    L2.result.element.textContent = `Lab result  ${c.result}`;
+    L2.dock.element.textContent = `Unloading queue  ${c.dock}${c.overflowDock ? ` (+${c.overflowDock} out of view)` : ''}`;
+    L2.unload.element.textContent = `Unloading  ${c.unload}/${p.bays}`;
+    L2.tanks.element.textContent = `Tanks  ${Math.round(inTanks)} t`;
+    L2.line.element.textContent = line === LINE.RUNNING ? 'Line  running' : line === LINE.STOPPED ? 'Line  stopped' : 'Line  no product';
     L2.line.element.dataset.state = line === LINE.RUNNING ? 'on' : 'off';
 
     // Anello sotto il camion scelto; la camera lo segue se richiesto.

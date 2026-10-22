@@ -23,10 +23,10 @@ export const DEFAULTS = {
 // trucks: camion del giorno proposti quando si sceglie lo scenario.
 // startLevel: riempimento iniziale delle vasche (STIMATO: impianto già in marcia, tranne all'avvio).
 export const SCENARIOS = {
-  picco: { label: 'Giorno di picco', trucks: 260, startLevel: 0.8, note: 'Arrivi concentrati nelle ore centrali, come nei giorni di punta.' },
-  pioggia: { label: 'Pioggia e ondata', trucks: 260, startLevel: 0.8, note: 'La pioggia ferma la raccolta per sei ore, poi i camion arrivano tutti insieme.' },
-  linea: { label: 'Linea ferma', trucks: 260, startLevel: 0.8, note: 'La linea si ferma dalle 10 alle 14. Il ricevimento continua.' },
-  avvio: { label: 'Inizio campagna', trucks: 100, startLevel: 0, note: 'Circa 100 camion e vasche vuote: la linea a piena velocità resta spesso senza prodotto. Prova a ridurla.' },
+  picco: { label: 'Peak day', trucks: 260, startLevel: 0.8, note: 'Arrivals bunch up in the middle of the day, as on peak days.' },
+  pioggia: { label: 'Rain and surge', trucks: 260, startLevel: 0.8, note: 'Rain stops the harvest for six hours, then the trucks all arrive at once.' },
+  linea: { label: 'Line stop', trucks: 260, startLevel: 0.8, note: 'The line stops from 10:00 to 14:00. Receiving goes on.' },
+  avvio: { label: 'Season start', trucks: 100, startLevel: 0, note: 'About 100 trucks and empty tanks: at full speed the line often runs out of product. Try slowing it down.' },
 };
 
 export const HORIZON = 2880; // due giorni: la coda deve svuotarsi
